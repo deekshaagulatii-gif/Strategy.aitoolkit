@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Strategy AI Toolkit: research and reporting demos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F1F5F6; --surface:#FFFFFF; --ink:#12232B; --muted:#55666E; --line:#D2DCE0;
+  --accent:#0E6B6B; --accent-soft:#D9ECEB; --amber:#8A5A0F; --amber-soft:#F5E9D3;
+  --good:#2D7A4F; --good-soft:#DCEFE3; --bad:#A33A3A; --bad-soft:#F4DEDE;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F181C; --surface:#172228; --ink:#E3ECEF; --muted:#9AAAB1; --line:#2B3A41;
+    --accent:#6CC2C0; --accent-soft:#1B3637; --amber:#E0B26A; --amber-soft:#3B2F1C;
+    --good:#7CC9A0; --good-soft:#1C3527; --bad:#E59393; --bad-soft:#402424;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F181C; --surface:#172228; --ink:#E3ECEF; --muted:#9AAAB1; --line:#2B3A41;
+  --accent:#6CC2C0; --accent-soft:#1B3637; --amber:#E0B26A; --amber-soft:#3B2F1C;
+  --good:#7CC9A0; --good-soft:#1C3527; --bad:#E59393; --bad-soft:#402424;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1040px;margin:0 auto;padding:30px 20px 64px}
+h1,h2,h3{font-family:"IBM Plex Serif",Georgia,serif;font-weight:600;letter-spacing:-.01em}
+h1{font-size:32px;line-height:1.15;margin:0 0 8px}
+h2{font-size:21px;margin:0 0 6px}
+h3{font-size:16px;margin:16px 0 6px}
+p{margin:0 0 12px}
+a{color:var(--accent)}
+.lead{color:var(--muted);max-width:70ch}
+.small{font-size:13px;color:var(--muted)}
+button,select,textarea,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Tool switcher: the toolkit's map of the consulting workflow */
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin:22px 0 4px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.flow button,.flow a{all:unset;cursor:pointer;padding:14px 14px 12px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.flow > :last-child{border-right:none}
+.flow .stage{font-size:12px;color:var(--muted)}
+.flow .name{font-weight:600}
+.flow [aria-selected="true"]{background:var(--accent-soft);box-shadow:inset 0 -3px 0 var(--accent)}
+.flow button:focus-visible,.flow a:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;margin-top:18px}
+.checks{margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--amber-soft);font-size:14px}
+.checks strong{color:var(--amber)}
+label.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);margin-bottom:12px}
+select,textarea,input[type=text]{padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);max-width:100%;width:100%}
+textarea{min-height:64px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.btn{padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-weight:600;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.primary{color:#0B1417}}
+:root[data-theme="dark"] .btn.primary{color:#0B1417}
+.btn[disabled]{opacity:.55;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.status{font-size:13px;color:var(--muted);min-height:20px;margin-top:8px}
+.hidden{display:none !important}
+
+/* Consultation analyser */
+.responses{max-height:280px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:14px}
+.resp{display:grid;grid-template-columns:48px 1fr;gap:8px;padding:7px 10px;border-bottom:1px solid var(--line)}
+.resp:last-child{border-bottom:none}
+.resp .id{color:var(--muted);font-variant-numeric:tabular-nums}
+.resp.hit{background:var(--accent-soft)}
+.theme{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:10px}
+.theme-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.theme-name{font-weight:600}
+.bar{height:6px;border-radius:3px;background:var(--line);margin:6px 0 8px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--accent)}
+.quote{border-left:3px solid var(--accent);padding:4px 10px;margin:8px 0;font-style:italic}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:10px;margin-left:6px;font-style:normal;font-weight:600}
+.tag.ok{background:var(--good-soft);color:var(--good)}
+.tag.no{background:var(--bad-soft);color:var(--bad)}
+.ids{display:flex;flex-wrap:wrap;gap:4px}
+.ids button{all:unset;cursor:pointer;font-size:12px;padding:1px 7px;border:1px solid var(--line);border-radius:10px}
+.ids button:hover,.ids button:focus-visible{border-color:var(--accent);color:var(--accent)}
+.minor{background:var(--amber-soft);border-radius:8px;padding:10px 12px;margin-top:12px}
+
+/* Strategy starter */
+.outcome{border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:10px}
+.tablewrap{overflow-x:auto;margin-top:8px}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:14px}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:600}
+ul,ol{margin:6px 0 10px;padding-left:20px}
+
+/* Document assistant */
+.answer{white-space:pre-wrap;padding:14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);margin-top:12px}
+.cite{all:unset;cursor:pointer;color:var(--accent);font-weight:600;font-size:13px;vertical-align:super;padding:0 1px}
+.cite.bad{color:var(--bad)}
+.passage{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:8px;font-size:14px}
+.passage.flash{border-color:var(--accent);background:var(--accent-soft)}
+.passage .meta{font-size:12px;color:var(--muted);margin-bottom:3px}
+.split{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chips button{all:unset;cursor:pointer;font-size:13px;padding:4px 10px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.chips button:hover,.chips button:focus-visible{border-color:var(--accent)}
+
+/* Tender fit checker */
+.score{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;margin:14px 0 4px}
+.score .big{font-family:"IBM Plex Serif",Georgia,serif;font-size:34px;font-weight:600;line-height:1}
+.crit{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:10px}
+.crit-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
+.crit-head .w{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+.tag.mid{background:var(--amber-soft);color:var(--amber)}
+.tag.na{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.fixes li{margin-bottom:6px}
+footer{font-size:13px;color:var(--muted);margin-top:26px;border-top:1px solid var(--line);padding-top:12px}
+@media (max-width:760px){
+  .flow{grid-template-columns:1fr}
+  .flow button,.flow a{border-right:none;border-bottom:1px solid var(--line)}
+  .flow > :last-child{border-bottom:none}
+  .grid2,.split{grid-template-columns:1fr}
+  h1{font-size:26px}
+}
+@media (prefers-reduced-motion: no-preference){ .passage{transition:background .3s,border-color .3s} }
+</style>
+</head>
+<body>
+<main>
+  <h1>Strategy AI Toolkit</h1>
+  <p class="lead">Working demos of how AI can support winning, researching and reporting on outcomes-based strategy work. Each tool shows its working, so a consultant can check every result before it is used.</p>
+  <p class="small">Built by Deeksha Gulati using public documents and illustrative sample data only. Source code: see the GitHub repository linked in the README.</p>
+
+  <nav class="flow" role="tablist" aria-label="Tools, in the order they are used on a strategy project">
+    <button role="tab" id="tab-tender" aria-controls="panel-tender" aria-selected="true"><span class="stage">Winning work</span><span class="name">Tender Fit Checker</span></button>
+    <button role="tab" id="tab-consult" aria-controls="panel-consult" aria-selected="false"><span class="stage">Research</span><span class="name">Consultation Analyser</span></button>
+    <button role="tab" id="tab-docs" aria-controls="panel-docs" aria-selected="false"><span class="stage">Research</span><span class="name">Document Assistant</span></button>
+    <button role="tab" id="tab-starter" aria-controls="panel-starter" aria-selected="false"><span class="stage">Strategy</span><span class="name">Strategy Starter</span></button>
+    <a href="https://claude.ai/artifact/77zqZACCNJVcuQ9wfU4gAr" target="_blank" rel="noopener"><span class="stage">Reporting</span><span class="name">Outcome Lens (opens separately)</span></a>
+  </nav>
+
+  <!-- 0. TENDER FIT CHECKER -->
+  <section id="panel-tender" role="tabpanel" aria-labelledby="tab-tender" class="card">
+    <h2>Tender Fit Checker</h2>
+    <p class="lead">Before a bid goes in: AI lists the tender's mandatory requirements and weighted award criteria, then rates how well the draft response addresses each one, quoting the draft as evidence. Gaps are ranked by the marks at risk.</p>
+    <div class="checks"><strong>What the code checks:</strong> every evidence quote must appear word for word in the draft, or the rating is not trusted; every weight must appear in the tender; weights must add up to 100%. <strong>What the bid manager still checks:</strong> every rating, and whether each fix is true of the firm.</div>
+    <p class="small">Both boxes hold a fictional example: a request for tender and a deliberately incomplete draft. Paste your own to try it.</p>
+    <div class="grid2">
+      <label class="field">Tender: requirements and award criteria <textarea id="tTender" style="min-height:300px"></textarea></label>
+      <label class="field">Draft response <textarea id="tDraft" style="min-height:300px"></textarea></label>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="tenderBtn">Check the draft</button>
+      <button class="btn hidden" id="tenderStop">Stop</button>
+      <button class="btn" id="tenderReset">Restore example</button>
+    </div>
+    <div class="status" id="tenderStatus" role="status"></div>
+    <div id="tenderOut"></div>
+  </section>
+
+  <!-- 1. CONSULTATION ANALYSER -->
+  <section id="panel-consult" role="tabpanel" aria-labelledby="tab-consult" class="card hidden">
+    <h2>Consultation Analyser</h2>
+    <p class="lead">Groups free-text stakeholder responses into themes, counts how often each comes up, and pulls an example quote. The page then checks every quote word for word against the original response, so nothing invented gets through.</p>
+    <div class="checks"><strong>What the consultant still checks:</strong> every theme, the responses filed under it, and the less common points flagged at the end, which AI tends to underweight.</div>
+
+    <h3>Sample responses</h3>
+    <p class="small">Illustrative responses written for this demo to the question: “What should a national health and social care regulator prioritise over the next three years?” They are not real submissions. You can replace them with your own, one response per line.</p>
+    <label class="field"><span class="hidden">Responses</span>
+      <textarea id="respInput" style="min-height:120px" aria-label="Responses, one per line"></textarea>
+    </label>
+    <div class="row">
+      <button class="btn primary" id="consultBtn">Find themes</button>
+      <button class="btn hidden" id="consultStop">Stop</button>
+      <button class="btn" id="respReset">Restore sample responses</button>
+    </div>
+    <div class="status" id="consultStatus" role="status"></div>
+    <div id="consultOut"></div>
+    <h3>Responses as numbered</h3>
+    <div class="responses" id="respList"></div>
+  </section>
+
+  <!-- 2. DOCUMENT ASSISTANT -->
+  <section id="panel-docs" role="tabpanel" aria-labelledby="tab-docs" class="card hidden">
+    <h2>Document Assistant</h2>
+    <p class="lead">Answers questions from a document library and cites the passage behind every point. First it searches the library for the most relevant passages; then AI answers using only those. This is the same approach a private assistant would use on a firm's own past reports.</p>
+    <div class="checks"><strong>What the consultant still checks:</strong> that each cited passage really supports the point. Citations to passages that were not retrieved are flagged in red.</div>
+    <p class="small">Library: plain-English notes on <a href="https://www.hiqa.ie/sites/default/files/2025-05/HIQA-Corporate-Plan-25-27.pdf" target="_blank" rel="noopener">HIQA's Corporate Plan 2025–2027</a> (public document), summarised passage by passage with page numbers. You can add your own text below.</p>
+    <div class="chips" id="docChips"></div>
+    <label class="field">Question
+      <input type="text" id="docQ" placeholder="For example: How will HIQA measure whether its plan is working?">
+    </label>
+    <div class="row">
+      <button class="btn primary" id="docBtn">Ask the library</button>
+      <button class="btn hidden" id="docStop">Stop</button>
+    </div>
+    <div class="status" id="docStatus" role="status"></div>
+    <div class="split">
+      <div><div class="answer hidden" id="docAnswer"></div></div>
+      <div id="docPassages"></div>
+    </div>
+    <details style="margin-top:16px">
+      <summary>Add your own document to the library</summary>
+      <p class="small" style="margin-top:8px">Paste the text of any public document. It is split into passages and searched alongside the HIQA notes. It stays on this page and is gone when you reload.</p>
+      <label class="field">Document name <input type="text" id="addName" placeholder="For example: Skillnet Ireland strategy 2026–2028"></label>
+      <label class="field">Text <textarea id="addText" style="min-height:110px"></textarea></label>
+      <button class="btn" id="addBtn">Add to library</button>
+      <div class="status" id="addStatus" role="status"></div>
+    </details>
+  </section>
+
+  <!-- 3. STRATEGY STARTER -->
+  <section id="panel-starter" role="tabpanel" aria-labelledby="tab-starter" class="card hidden">
+    <h2>Strategy Starter</h2>
+    <p class="lead">For organisations that cannot fund a full strategy engagement. They describe their situation; AI drafts an outcome strategy outline with indicators and a first 90 days, which a consultant reviews in one short workshop before handover.</p>
+    <div class="checks"><strong>What the consultant still checks:</strong> whether the outcomes are the right ones, whether the indicators can really be measured, and the points the draft flags as needing expert input.</div>
+    <p class="small">The form is filled with a fictional example. Edit it to try your own.</p>
+    <div class="grid2">
+      <label class="field">Type of organisation <input type="text" id="sType"></label>
+      <label class="field">Planning period <input type="text" id="sPeriod"></label>
+    </div>
+    <label class="field">What the organisation does <textarea id="sPurpose"></textarea></label>
+    <label class="field">Main challenges right now <textarea id="sChallenge"></textarea></label>
+    <label class="field">Key stakeholders <textarea id="sStake"></textarea></label>
+    <label class="field">What they want to be different in three years <textarea id="sWant"></textarea></label>
+    <label class="field">Data they already collect <textarea id="sData"></textarea></label>
+    <div class="row">
+      <button class="btn primary" id="starterBtn">Draft the outline</button>
+      <button class="btn hidden" id="starterStop">Stop</button>
+    </div>
+    <div class="status" id="starterStatus" role="status"></div>
+    <div id="starterOut"></div>
+  </section>
+
+  <footer>Everything AI produces here is a first draft. In real client work, client information would only be processed in a private, secure environment, never a free public AI tool, and a consultant reviews every output. When this page runs AI, it uses the viewer's own Claude account.</footer>
+</main>
+
+<script>
+/* ---------- shared ---------- */
+const $ = id => document.getElementById(id);
+let sample = null;
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function errorCopy(code){
+  switch(code){
+    case "not_granted": return "AI isn't allowed in this view, so this tool can't run here.";
+    case "rate_limited": case "queue_overflow": return "Too many requests at once. Wait a moment, then try again.";
+    case "cancelled": return "Stopped.";
+    case "prompt_too_large": return "That's too much text for one request. Try fewer responses or a shorter document.";
+    case "invalid_json": case "empty_completion": return "The answer didn't come back in the expected shape. Try again.";
+    default: return "Something went wrong. Try again in a moment.";
+  }
+}
+function busy(btn, stop, on){ btn.disabled = on; stop.classList.toggle("hidden", !on); }
+const norm = s => (s||"").toLowerCase().replace(/[\u2018\u2019]/g,"'").replace(/[\u201c\u201d]/g,'"').replace(/[^a-z0-9' ]+/g," ").replace(/\s+/g," ").trim();
+
+/* tabs */
+const tabs = ["tender","consult","docs","starter"];
+tabs.forEach(t => $("tab-"+t).addEventListener("click", () => {
+  tabs.forEach(u => { $("tab-"+u).setAttribute("aria-selected", u===t); $("panel-"+u).classList.toggle("hidden", u!==t); });
+}));
+
+
+/* ---------- 0. tender fit checker ---------- */
+const T_EXAMPLE = { tTender: "REQUEST FOR TENDER (fictional example for demonstration)\nStrategy Development Services for Northbridge Community Health Network\n\nSection 4: Mandatory requirements (pass/fail)\nM1. Tenderers must confirm compliance with GDPR and describe how personal data collected during consultation will be stored and processed.\nM2. The assignment must be completed within 16 weeks of contract signing.\nM3. Tenderers must name a project lead with at least five years' experience of strategy development.\n\nSection 5: Award criteria\nTenders that pass Section 4 will be scored as follows.\nA. Understanding of the requirement (15%): show an understanding of the Network's services, context and the challenges set out in Section 2.\nB. Methodology and work plan (30%): describe the approach, phases, deliverables and timeline, including how the strategy will set measurable outcomes.\nC. Stakeholder engagement (15%): explain how service users, staff and partner organisations, including seldom-heard groups, will be consulted.\nD. Innovation and creativity (15%): describe any innovative methods or tools that will add value beyond a standard approach.\nE. Team and relevant experience (10%): outline the team, their roles and comparable assignments.\nF. Price (15%): assessed from the separate price schedule.", tDraft: "DRAFT RESPONSE (fictional example for demonstration)\n\n1. Our understanding\nNorthbridge Community Health Network supports people across three counties through community nursing, mental health outreach and carer services. We understand the Network needs a strategy that responds to rising demand and shows funders the difference its services make.\n\n2. Our approach\nWe propose a four-phase approach over 16 weeks: discovery (weeks 1 to 3), engagement (weeks 4 to 8), strategy drafting (weeks 9 to 13) and finalisation (weeks 14 to 16). Each phase ends with a steering group review. The strategy will set three to five outcomes, each with indicators, a data source and a baseline, so the Network can report progress every quarter.\n\n3. Consultation\nWe will run six workshops with staff and an online survey for service users. We will also interview partner organisations.\n\n4. Our team\nThe project will be led by our Director, who has 12 years' strategy experience in health and social care, supported by a senior consultant and an analyst. Recent assignments include corporate plans for two national health bodies.\n\n5. Added value\nWe will use modern tools to make the process efficient." };
+const tReset = () => Object.entries(T_EXAMPLE).forEach(([k,v]) => $(k).value = v);
+tReset(); $("tenderReset").addEventListener("click", () => { tReset(); $("tenderOut").textContent = ""; $("tenderStatus").textContent = ""; });
+const RATING = { well:["Addressed well","ok"], brief:["Mentioned briefly","mid"], missing:["Missing","no"],
+  unverified:["Evidence not found in draft","no"], not_assessed:["Assessed separately","na"] };
+const SCORE = { well:1, brief:0.5 };
+const esc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+function verifyTender(d, tender, draft){
+  const dn = norm(draft), warnings = [], crit = Array.isArray(d.criteria) ? d.criteria : [];
+  crit.forEach(c => {
+    const ev = (c.evidence||[]).filter(Boolean);
+    c.verified = ev.filter(q => norm(q) && dn.includes(norm(q)));
+    c.notFound = ev.filter(q => !c.verified.includes(q));
+    if (c.type === "price") c.rating = "not_assessed";
+    else if (SCORE[c.rating] != null && !c.verified.length) c.rating = "unverified";
+    if (typeof c.weight === "number" && !new RegExp("(^|[^0-9])" + esc(String(c.weight)) + "\\s*%").test(tender))
+      warnings.push((c.ref||"?") + ": weight " + c.weight + "% does not appear in the tender. Check it.");
+  });
+  const weighted = crit.filter(c => (c.type==="scored"||c.type==="price") && typeof c.weight === "number");
+  const total = weighted.reduce((a,c) => a + c.weight, 0);
+  if (weighted.length && Math.abs(total-100) > 0.5) warnings.push("Weights add up to " + total + "%, not 100%. A criterion may have been missed.");
+  const scored = weighted.filter(c => c.type === "scored");
+  const possible = scored.reduce((a,c) => a + c.weight, 0);
+  const secured = scored.reduce((a,c) => a + c.weight * (SCORE[c.rating]||0), 0);
+  const mand = crit.filter(c => c.type === "mandatory" && SCORE[c.rating] == null);
+  const risk = scored.filter(c => c.rating !== "well").sort((a,b) => b.weight*(1-(SCORE[b.rating]||0)) - a.weight*(1-(SCORE[a.rating]||0)));
+  return { crit, warnings, coverage: possible ? Math.round(100*secured/possible) : null, priorities: mand.concat(risk), atRisk: Math.round(possible - secured) };
+}
+
+function renderTender(r){
+  const out = $("tenderOut"); out.textContent = "";
+  const sc = el("div","score");
+  if (r.coverage != null){
+    const a = el("div"); a.appendChild(el("div","big", r.coverage + "%")); a.appendChild(el("div","small","weighted coverage of the scored criteria")); sc.appendChild(a);
+    const b = el("div"); b.appendChild(el("div","big", String(r.atRisk))); b.appendChild(el("div","small","marks at risk in the written response")); sc.appendChild(b);
+  }
+  const m = r.crit.filter(c => c.type==="mandatory" && SCORE[c.rating]==null).length;
+  const cm = el("div"); cm.appendChild(el("div","big", String(m))); cm.appendChild(el("div","small","mandatory requirements not clearly met")); sc.appendChild(cm);
+  out.appendChild(sc);
+  out.appendChild(el("p","small","A rough guide to where marks could be lost, not a predicted score."));
+  if (r.warnings.length){ const w = el("div","checks"); w.appendChild(el("strong", null, "Check these: ")); w.appendChild(list(r.warnings)); out.appendChild(w); }
+  if (r.priorities.length){
+    out.appendChild(el("h3", null, "Fix before submission, in order of marks at risk"));
+    const ol = el("ol","fixes");
+    r.priorities.forEach(c => {
+      const li = el("li"); li.appendChild(el("strong", null, (c.ref?c.ref+" ":"") + (c.criterion||"") + ": "));
+      if (c.type === "mandatory"){ const t = el("span","tag no","Risk of disqualification"); t.style.marginLeft="0"; t.style.marginRight="6px"; li.appendChild(t); }
+      li.appendChild(document.createTextNode((c.gap||"") + (c.fix ? " Fix: " + c.fix : "")));
+      ol.appendChild(li);
+    });
+    out.appendChild(ol);
+  }
+  out.appendChild(el("h3", null, "Every requirement and criterion"));
+  r.crit.forEach(c => {
+    const box = el("div","crit"), head = el("div","crit-head"), left = el("div");
+    left.appendChild(el("span","theme-name", (c.ref?c.ref+". ":"") + (c.criterion||"")));
+    const [label, cls] = RATING[c.rating] || [c.rating||"?","na"]; left.appendChild(el("span","tag "+cls, label));
+    head.appendChild(left);
+    head.appendChild(el("span","w", c.type==="mandatory" ? "Mandatory, pass/fail" : (typeof c.weight==="number" ? c.weight+"% of marks" : "No weight stated")));
+    box.appendChild(head);
+    if (c.looking_for) box.appendChild(el("p","small","Evaluators look for: " + c.looking_for));
+    c.verified.forEach(q => { const d = el("div","quote", "“" + q + "”"); d.appendChild(el("span","tag ok","Found in draft")); box.appendChild(d); });
+    c.notFound.forEach(q => { const d = el("div","quote", "“" + q + "”"); d.appendChild(el("span","tag no","Not in draft")); box.appendChild(d); });
+    if (c.rating !== "well" && c.rating !== "not_assessed" && c.gap) box.appendChild(el("p", null, "Gap: " + c.gap + (c.fix ? " Fix: " + c.fix : "")));
+    out.appendChild(box);
+  });
+}
+
+let tCtl = null;
+$("tenderBtn").addEventListener("click", async () => {
+  if (!sample){ $("tenderStatus").textContent = "Open this page in Claude to run the AI."; return; }
+  const tender = $("tTender").value.trim(), draft = $("tDraft").value.trim();
+  if (!tender || !draft){ $("tenderStatus").textContent = "Paste both the tender and the draft response."; return; }
+  tCtl = new AbortController(); busy($("tenderBtn"), $("tenderStop"), true);
+  $("tenderStatus").textContent = "Reviewing the draft against each criterion… this can take up to a minute."; $("tenderOut").textContent = "";
+  const prompt =
+`You are a bid reviewer checking a DRAFT tender response before submission.
+
+TENDER:
+<<<
+${tender}
+>>>
+
+DRAFT RESPONSE:
+<<<
+${draft}
+>>>
+
+1. List every mandatory (pass/fail) requirement and every scored award criterion that the TENDER states. Use the tender's own reference (e.g. "M1", "B") and its stated weight as a number. Never invent a criterion or a weight; use null if no weight is stated. Price, or anything assessed outside the written response, has type "price".
+2. Rate how well the DRAFT addresses each one: "well" (specific and complete), "brief" (mentioned but thin or generic), "missing" (not addressed). Use "not_assessed" for type "price".
+3. Evidence: copy up to 2 sentences from the DRAFT, word for word, that support the rating. Empty if missing.
+4. looking_for: one line on what an evaluator wants. Gap: what an evaluator would mark down. Fix: one concrete addition. Do not invent facts about the bidder.
+
+Return ONLY JSON:
+{"criteria":[{"ref":"","criterion":"","type":"mandatory|scored|price","weight":null,"looking_for":"","rating":"well|brief|missing|not_assessed","evidence":[""],"gap":"","fix":""}]}`;
+  try{
+    const d = await sample.json(prompt, { signal: tCtl.signal, modelTier: "default" });
+    const r = verifyTender(d, tender, draft);
+    if (!r.crit.length){ $("tenderStatus").textContent = "No requirements or criteria were found in the tender text. Paste the section that lists them."; return; }
+    renderTender(r);
+    $("tenderStatus").textContent = "First review for the bid manager to check.";
+  }catch(e){ $("tenderStatus").textContent = errorCopy(e && e.code); }
+  finally{ busy($("tenderBtn"), $("tenderStop"), false); }
+});
+$("tenderStop").addEventListener("click", () => tCtl && tCtl.abort());
+
+/* ---------- 1. consultation analyser ---------- */
+const SAMPLE_RESPONSES = [
+  "Inspection reports take too long to be published. By the time families read them, things have often changed in the nursing home.",
+  "Please publish inspection findings faster and in plain language. Most families cannot follow the current reports.",
+  "Home support needs regulating urgently. My mother has had six different carers in two months and nobody checks the quality.",
+  "Regulate home care providers the same way as nursing homes. At the moment there is no independent oversight at all.",
+  "Staffing shortages are the real issue. Inspections note the gaps but nothing changes because services cannot recruit.",
+  "As a manager of a disability service, the paperwork for inspection takes staff away from residents. Less duplication would help.",
+  "Use data better. Providers already submit lots of information; it should be used to spot risks before inspectors visit.",
+  "I am Deaf and use Irish Sign Language. Consultations and reports are never available in ISL, so my community is left out.",
+  "Children in care should be asked directly about their experience. Surveys mostly reach parents and staff.",
+  "More unannounced inspections, especially at night and at weekends when staffing is thinnest.",
+  "The National Care Experience surveys are useful. Please extend them to mental health services, which get little attention.",
+  "Travellers rarely see themselves in these reports. Engage with Traveller organisations when designing surveys.",
+  "Rural services are inspected far less often than city ones. People in rural areas deserve the same assurance.",
+  "Reports should show whether things improved after the last inspection, not just list what was wrong.",
+  "Measure outcomes for residents, like quality of life and dignity, not just compliance with paperwork.",
+  "Faster publication of reports, please. Six months later the information is out of date.",
+  "Home support workers are underpaid and overstretched. Regulation without funding will not fix the problem.",
+  "Plain English summaries at the top of every report would make a huge difference for families.",
+  "There should be a simple way for families to raise concerns between inspections and know what happened next.",
+  "Artificial intelligence could help analyse inspection data, but it must be used carefully and transparently.",
+  "Mental health services need the same level of independent monitoring as acute hospitals.",
+  "Avoid asking providers for the same data in three different formats. Share data between agencies."
+];
+function setResponses(list){ $("respInput").value = list.join("\n"); renderRespList(); }
+function currentResponses(){ return $("respInput").value.split("\n").map(s=>s.trim()).filter(Boolean); }
+function renderRespList(highlight){
+  const box = $("respList"); box.textContent = "";
+  currentResponses().forEach((r,i) => {
+    const row = el("div","resp"); row.id = "resp-"+(i+1);
+    if (highlight && highlight.has(i+1)) row.classList.add("hit");
+    row.append(el("span","id","R"+(i+1)), el("span",null,r));
+    box.appendChild(row);
+  });
+}
+$("respInput").addEventListener("input", () => renderRespList());
+$("respReset").addEventListener("click", () => { setResponses(SAMPLE_RESPONSES); $("consultOut").textContent=""; $("consultStatus").textContent=""; });
+setResponses(SAMPLE_RESPONSES);
+
+function showIds(ids){
+  renderRespList(new Set(ids));
+  const first = ids[0] && $("resp-"+ids[0]);
+  if (first) first.scrollIntoView({block:"nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+}
+
+function renderThemes(data, responses){
+  const out = $("consultOut"); out.textContent = "";
+  const n = responses.length;
+  const covered = new Set();
+  (data.themes||[]).sort((a,b)=>(b.response_ids||[]).length-(a.response_ids||[]).length).forEach(t => {
+    const ids = [...new Set((t.response_ids||[]).map(Number).filter(i => i>=1 && i<=n))];
+    ids.forEach(i => covered.add(i));
+    const box = el("div","theme");
+    const head = el("div","theme-head");
+    head.append(el("span","theme-name", t.name||"Theme"), el("span","small", ids.length + " of " + n + " responses"));
+    box.appendChild(head);
+    const bar = el("div","bar"); const fill = el("span"); fill.style.width = (100*ids.length/n)+"%"; bar.appendChild(fill); box.appendChild(bar);
+    if (t.description) box.appendChild(el("p","small", t.description));
+    if (t.quote && t.quote.text){
+      const qid = Number(t.quote.response_id);
+      const src = responses[qid-1] || "";
+      const ok = qid>=1 && norm(src).includes(norm(t.quote.text));
+      const q = el("div","quote", "“" + t.quote.text + "” (R" + qid + ")");
+      q.appendChild(el("span", "tag " + (ok ? "ok" : "no"), ok ? "Quote verified" : "Quote not found in source"));
+      box.appendChild(q);
+    }
+    const idsBox = el("div","ids");
+    ids.forEach(i => { const b = el("button", null, "R"+i); b.setAttribute("aria-label","Show response "+i); b.addEventListener("click", () => showIds([i])); idsBox.appendChild(b); });
+    const all = el("button", null, "Highlight all"); all.addEventListener("click", () => showIds(ids)); idsBox.appendChild(all);
+    box.appendChild(idsBox);
+    out.appendChild(box);
+  });
+  if (Array.isArray(data.less_common) && data.less_common.length){
+    const m = el("div","minor");
+    m.appendChild(el("strong",null,"Less common points to check by hand"));
+    const ul = el("ul");
+    data.less_common.forEach(p => { const li = el("li", null, p.point + " (R" + p.response_id + ")"); ul.appendChild(li); });
+    m.appendChild(ul); out.appendChild(m);
+  }
+  const missing = []; for (let i=1;i<=n;i++) if (!covered.has(i)) missing.push(i);
+  out.appendChild(el("p","small", missing.length ? "Not placed in any theme: " + missing.map(i=>"R"+i).join(", ") + ". A consultant should read these." : "Every response was placed in at least one theme."));
+}
+
+let cCtl = null;
+$("consultBtn").addEventListener("click", async () => {
+  if (!sample){ $("consultStatus").textContent = "Open this page in Claude to run the AI."; return; }
+  const responses = currentResponses();
+  if (responses.length < 3){ $("consultStatus").textContent = "Add at least three responses, one per line."; return; }
+  if (responses.length > 200){ $("consultStatus").textContent = "This demo handles up to 200 responses at a time."; return; }
+  cCtl = new AbortController(); busy($("consultBtn"), $("consultStop"), true);
+  $("consultStatus").textContent = "Reading responses… this can take up to a minute."; $("consultOut").textContent = "";
+  const prompt =
+`You are helping a strategy consultant analyse free-text consultation responses.
+Question asked: "What should a national health and social care regulator prioritise over the next three years?"
+
+Responses (ID then text):
+${responses.map((r,i)=>`R${i+1}: ${r}`).join("\n")}
+
+Tasks:
+1. Identify 4 to 7 themes. A response can belong to more than one theme. Name each theme in plain English (under 8 words) and describe it in one sentence.
+2. For each theme, list the numeric IDs of every response that expresses it.
+3. For each theme, give one supporting quote copied EXACTLY, word for word, from one response, under 20 words, with its response ID. Do not paraphrase the quote.
+4. List points raised by only one or two responses that a consultant should not miss, especially from minority or seldom-heard groups.
+
+Return ONLY JSON:
+{"themes":[{"name":"","description":"","response_ids":[1,2],"quote":{"response_id":1,"text":""}}],
+ "less_common":[{"response_id":8,"point":"one sentence"}]}`;
+  try{
+    const data = await sample.json(prompt, { signal: cCtl.signal, modelTier: "default" });
+    renderThemes(data, responses);
+    $("consultStatus").textContent = "First-pass themes. Click a response number to see it in the list below.";
+  }catch(e){ $("consultStatus").textContent = errorCopy(e && e.code); }
+  finally{ busy($("consultBtn"), $("consultStop"), false); }
+});
+$("consultStop").addEventListener("click", () => cCtl && cCtl.abort());
+
+/* ---------- 2. document assistant (retrieval + cited answer) ---------- */
+const HIQA = "HIQA Corporate Plan 2025–2027";
+const LIBRARY = [
+  [2,"About HIQA","HIQA is an independent statutory body that promotes safety and quality in health and social care. Its functions include setting standards, regulating social care and health services, monitoring services, health technology assessment, advising on health information, and running the National Care Experience Programme of service-user surveys with the Department of Health and the HSE."],
+  [4,"Foreword","The plan runs to 2027, which marks HIQA's 20th anniversary. HIQA ran an extensive engagement programme with patients, people using services, policymakers, providers, advocacy groups, staff and the public, asking what had worked, what challenges lay ahead and what the priorities should be."],
+  [4,"Foreword","HIQA moved away from traditional goal setting towards tangible outcomes it wants to achieve by 2027. These outcomes are described as the benchmarks for measuring the plan's success, alongside longer-term outcomes beyond the three years."],
+  [5,"Context","New statutory functions are adding to HIQA's remit. The Patient Safety Act 2023 makes reporting of notifiable incidents mandatory and extends oversight to private healthcare providers. The Health (Miscellaneous Provisions) (No. 2) Act 2024 lets the Chief Inspector issue compliance notices and allows collection and publication of operational data from nursing homes."],
+  [5,"Context","Other developments include monitoring permanent International Protection Accommodation Services centres, joint clinical assessments under the EU Health Technology Assessment Regulation from 2025, the European Health Data Space Regulation, critical entities resilience rules, the Human Tissue Act 2024 and monitoring quality across the new Sláintecare health regions."],
+  [6,"Context","The plan notes that advances in artificial intelligence are likely to have an increasing impact on healthcare. It also notes that HIQA hosts the National Immunisation Advisory Committee from March 2025, must meet public sector climate targets for 2030, align with sustainability reporting rules, and sees UN Sustainable Development Goal 3 on health and wellbeing as especially relevant."],
+  [7,"Context","Bills under consideration that could affect HIQA include cybersecurity rules under NIS-2, the Health Information Bill 2024, licensing of professional home support providers, and licensing of hospitals and high-risk healthcare activities."],
+  [7,"Context","HIQA ran a scenario planning exercise while developing the plan. It looked at long-term macro factors, tactical issues for delivering the 2025–2027 outcomes, and internal capabilities, and concluded that HIQA faces moderate to extensive change."],
+  [8,"Vision and mission","The vision is health and social care services that consistently deliver excellent standards of care and the best possible outcomes for the people of Ireland. The mission is to enable the best possible outcomes for all through evidence-informed decision-making, standard setting and regulation."],
+  [10,"Values","HIQA's seven values are human rights, being people centred, being fair, objective and equitable, being open and accountable, excellence, quality, and collaboration."],
+  [13,"Long-term outcomes","Four long-term outcomes sit behind the vision: safe, joined-up care across all services (service focus); evidence-informed decisions that improve outcomes (evidence-informed impact); a high-performing organisation (governance and organisational effectiveness); and a positive working environment (people)."],
+  [14,"Outcomes 2025–2027","Six outcomes are set for 2025–2027: regulation and standards enabling better outcomes; influencing providers to improve service user experiences; providing evidence for policy; delivering value through agile ways of working and good governance; being sustainable and inclusive; and being an employer of choice."],
+  [15,"Outcomes 2025–2027","Under the service user outcome, a key priority is strengthening the use of data analytics, intelligence and real-time information to support regulatory effectiveness. HIQA also commits to keep evaluating its own regulatory and monitoring processes."],
+  [16,"Resources","HIQA's main funder is the Department of Health, with registration fees and earmarked funding from other bodies. The plan assumes remit expansion happens in phases with extra resources, timely approval of staff requests, and funding that keeps pace with pay and operating costs."],
+  [17,"Activities","Because HIQA is moving to an outcomes focus, it says it must review how it measures success. Developing an outcome framework and a mechanism to monitor progress is named as a key priority for the first year of the plan."],
+  [17,"Activities: service focus","Actions include publishing reports on findings across healthcare, radiation, IPAS centres, older person, disability and children's services; extending the Chief Inspector's remit to home support; statutory investigations; updating national standards; risk-based regulation; and annual reporting on open disclosure."],
+  [18,"Activities: service users","Actions include extending the National Care Experience Programme to cancer and mental health services and to hard-to-reach groups, publishing annual overview reports, reviewing regulatory effectiveness after developments in nursing homes, and using data and analytics to share learning across sectors."],
+  [19,"Activities: evidence","Actions include health technology assessments and evidence syntheses, a strategic research function, work on a National Data Access Body, developing an ethical and safe use guidance framework for AI in health and social care, and supporting an Evidence Synthesis Hub for future health crises."],
+  [20,"Activities: governance","Actions include reviewing the Target Operating Model, including assessing how AI and data analytics could improve operational performance; evaluating HIQA's impact with specific impact measures; a Digital and Data Strategy; and a Quality, Risk and Compliance Strategy for 2026–2028."],
+  [20,"Activities: sustainability and people","Actions include implementing the Climate Action Plan, diversity, equality and inclusion plans, sustainability reporting, a People and Culture Strategy, strategic workforce plans, a Learning and Development Strategy, and an employee engagement plan."],
+  [22,"Implementation and monitoring","The Board and Executive Management Team will monitor the plan, alongside a performance delivery agreement with the Department of Health. HIQA says it needs to further develop a methodology to evaluate its impact and measure the value it adds to Irish society."],
+  [23,"Appendix: human rights and equality","Under its public sector equality and human rights duty, HIQA commits to prioritise measuring the real-world impact of regulation rather than only tracking outputs, and to keep gathering qualitative feedback from people using services."]
+].map(([page, section, text], i) => ({ id: "P"+(i+1), source: HIQA, where: section + ", p." + page, text }));
+
+/* BM25 keyword search: the "retrieval" half of retrieval-augmented generation */
+const STOP = new Set("the a an and or of to in on for is are be by with as at that this it its from how what which will does do has have was were their they our we can could would should into about".split(" "));
+["plan","hiqa","say","says","develop","developing","whether","taking","new"].forEach(w => STOP.add(w));
+const SYN = { consult:"engag", consultation:"engag", engagement:"engag", engage:"engag", measure:"measur", measuring:"measur", measured:"measur", working:"success", work:"success", responsibilit:"remit", responsibilities:"remit", responsibility:"remit", function:"remit", functions:"remit" };
+const tok = s => norm(s).replace(/artificial intelligence/g,"ai").split(" ")
+  .filter(w => (w.length>2 || w==="ai") && !STOP.has(w))
+  .map(w => SYN[w] || w.replace(/(ing|ed|es|s)$/,""))
+  .map(w => SYN[w] || w);
+function search(query, k){
+  const docs = LIBRARY.map(p => tok(p.text + " " + p.where));
+  const N = docs.length, avg = docs.reduce((a,d)=>a+d.length,0)/N, df = {};
+  docs.forEach(d => new Set(d).forEach(w => df[w]=(df[w]||0)+1));
+  const q = tok(query);
+  return LIBRARY.map((p,i) => {
+    const d = docs[i]; let s = 0;
+    q.forEach(w => { const f = d.filter(x=>x===w).length; if (!f) return;
+      const idf = Math.log(1+(N-df[w]+.5)/(df[w]+.5)); s += idf*(f*2.2)/(f+1.2*(1-.75+.75*d.length/avg)); });
+    return {p, s};
+  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,k).map(x=>x.p);
+}
+
+const QUESTIONS = ["How will HIQA measure whether its plan is working?","What does the plan say about AI?","Who did HIQA consult when developing the plan?","What new responsibilities is HIQA taking on?"];
+QUESTIONS.forEach(q => { const b = el("button", null, q); b.addEventListener("click", () => { $("docQ").value = q; $("docBtn").click(); }); $("docChips").appendChild(b); });
+
+function renderPassages(list){
+  const box = $("docPassages"); box.textContent = "";
+  box.appendChild(el("h3", null, "Passages retrieved (" + list.length + ")"));
+  list.forEach(p => { const d = el("div","passage"); d.id = "pass-"+p.id;
+    d.append(el("div","meta", p.id + " · " + p.source + " · " + p.where), el("div", null, p.text)); box.appendChild(d); });
+}
+function renderAnswer(text, allowed){
+  const box = $("docAnswer"); box.textContent = ""; box.classList.remove("hidden");
+  const parts = text.split(/(\[P\d+\])/g); let bad = 0;
+  parts.forEach(part => {
+    const m = part.match(/^\[(P\d+)\]$/);
+    if (!m){ box.appendChild(document.createTextNode(part)); return; }
+    const ok = allowed.has(m[1]); if (!ok) bad++;
+    const b = el("button", "cite" + (ok ? "" : " bad"), m[1]);
+    b.setAttribute("aria-label", ok ? "Show passage " + m[1] : m[1] + " was not among the retrieved passages");
+    b.addEventListener("click", () => { const t = $("pass-"+m[1]); if (!t) return; t.scrollIntoView({block:"nearest"}); t.classList.add("flash"); setTimeout(()=>t.classList.remove("flash"),1600); });
+    box.appendChild(b);
+  });
+  return bad;
+}
+let dCtl = null;
+$("docBtn").addEventListener("click", async () => {
+  const q = $("docQ").value.trim();
+  if (!q){ $("docStatus").textContent = "Type a question first."; return; }
+  const hits = search(q, 5); renderPassages(hits);
+  if (!hits.length){ $("docAnswer").classList.add("hidden"); $("docStatus").textContent = "No passage in the library matches those words. Try different wording."; return; }
+  if (!sample){ $("docStatus").textContent = "Search works here; open this page in Claude to generate the cited answer."; return; }
+  dCtl = new AbortController(); busy($("docBtn"), $("docStop"), true); $("docStatus").textContent = "";
+  const out = $("docAnswer"); out.classList.remove("hidden"); out.textContent = "Thinking…";
+  const prompt =
+`Answer the question using ONLY the passages below. After every sentence that uses a passage, cite it like [P3]. If the passages do not answer the question, say so plainly instead of guessing. Plain text, under 160 words, no headings.
+
+Question: ${q}
+
+Passages:
+${hits.map(p => `[${p.id}] (${p.source}, ${p.where}) ${p.text}`).join("\n")}`;
+  let finalText = "";
+  try{
+    await sample(prompt, { signal: dCtl.signal, modelTier: "default", cache: false, onText: ({text}) => { finalText = text; out.textContent = text; } });
+    const bad = renderAnswer(finalText, new Set(hits.map(p=>p.id)));
+    $("docStatus").textContent = bad ? bad + " citation(s) point to passages that were not retrieved. Treat those points with caution." : "Every citation points to a retrieved passage. Click one to see it.";
+  }catch(e){
+    out.textContent = (e && e.text) || ""; if (!out.textContent) out.classList.add("hidden");
+    $("docStatus").textContent = errorCopy(e && e.code);
+  }finally{ busy($("docBtn"), $("docStop"), false); }
+});
+$("docStop").addEventListener("click", () => dCtl && dCtl.abort());
+$("docQ").addEventListener("keydown", e => { if (e.key === "Enter") $("docBtn").click(); });
+$("addBtn").addEventListener("click", () => {
+  const name = $("addName").value.trim() || "Your document";
+  const text = $("addText").value.replace(/\s+/g," ").trim();
+  if (text.length < 200){ $("addStatus").textContent = "Paste at least a paragraph or two of text."; return; }
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text]; let chunk = "", n = 0;
+  const push = () => { if (chunk.trim()){ n++; LIBRARY.push({ id:"P"+(LIBRARY.length+1), source:name, where:"passage "+n, text:chunk.trim() }); chunk=""; } };
+  sentences.forEach(s => { if ((chunk+s).length > 700) push(); chunk += s; }); push();
+  $("addStatus").textContent = "Added " + n + " passages from “" + name + "”. The library now has " + LIBRARY.length + " passages.";
+  $("addText").value = "";
+});
+
+/* ---------- 3. strategy starter ---------- */
+const EXAMPLE = {
+  sType: "Small regional charity (12 staff, about 40 volunteers)",
+  sPeriod: "2027–2029",
+  sPurpose: "Supports family carers of older people at home: respite breaks, peer support groups, training and an information phone line.",
+  sChallenge: "Demand is rising faster than funding. Volunteer numbers have dropped since 2023. Funders now ask for evidence of impact, but we mostly count activities such as calls taken and sessions run.",
+  sStake: "Family carers, the people they care for, volunteers, staff, the local HSE health region, two community foundations that fund us, and local GPs.",
+  sWant: "Carers feel less isolated and better able to keep caring without burning out. We can show funders what difference we make. Our volunteer base is stable.",
+  sData: "Call logs, attendance at groups, a yearly paper survey with a low response rate, and volunteer hours."
+};
+Object.entries(EXAMPLE).forEach(([k,v]) => $(k).value = v);
+
+function list(items){ const ul = el("ul"); (items||[]).forEach(t => ul.appendChild(el("li", null, t))); return ul; }
+function renderStarter(d){
+  const out = $("starterOut"); out.textContent = "";
+  if (d.summary){ out.appendChild(el("h3", null, "Strategic direction")); out.appendChild(el("p", null, d.summary)); }
+  (d.outcomes||[]).forEach((o,i) => {
+    const box = el("div","outcome");
+    box.appendChild(el("h3", null, "Outcome " + (i+1) + ": " + (o.outcome||"")));
+    if (o.why) box.appendChild(el("p","small", o.why));
+    box.appendChild(el("strong", null, "Actions (outputs that contribute)")); box.appendChild(list(o.actions));
+    if (Array.isArray(o.indicators) && o.indicators.length){
+      const w = el("div","tablewrap"), t = el("table"), hr = el("tr");
+      ["How we'll know it's working","Data source","How often"].forEach(h => hr.appendChild(el("th", null, h)));
+      const th = el("thead"); th.appendChild(hr); t.appendChild(th); const tb = el("tbody");
+      o.indicators.forEach(x => { const r = el("tr"); [x.indicator, x.source, x.frequency].forEach(v => r.appendChild(el("td", null, v||""))); tb.appendChild(r); });
+      t.appendChild(tb); w.appendChild(t); box.appendChild(w);
+    }
+    out.appendChild(box);
+  });
+  if (d.first_90_days){ out.appendChild(el("h3", null, "First 90 days")); const ol = el("ol"); d.first_90_days.forEach(t => ol.appendChild(el("li", null, t))); out.appendChild(ol); }
+  if (d.consultant_review){ const c = el("div","checks"); c.appendChild(el("strong", null, "Needs expert input before handover")); c.appendChild(list(d.consultant_review)); out.appendChild(c); }
+  if (d.assumptions){ out.appendChild(el("h3", null, "Assumptions made")); out.appendChild(list(d.assumptions)); }
+}
+let sCtl = null;
+$("starterBtn").addEventListener("click", async () => {
+  if (!sample){ $("starterStatus").textContent = "Open this page in Claude to run the AI."; return; }
+  const f = k => $(k).value.trim();
+  if (!f("sPurpose") || !f("sWant")){ $("starterStatus").textContent = "Fill in at least what the organisation does and what they want to be different."; return; }
+  sCtl = new AbortController(); busy($("starterBtn"), $("starterStop"), true);
+  $("starterStatus").textContent = "Drafting… this can take up to a minute."; $("starterOut").textContent = "";
+  const prompt =
+`You are drafting an outcome strategy OUTLINE for a small organisation that cannot afford a full consulting engagement. A consultant will review it in one workshop before handover. Use an "outcomes, not outputs" approach: outcomes describe change for people; actions are outputs that contribute to them.
+
+Organisation type: ${f("sType")}
+Planning period: ${f("sPeriod")}
+What it does: ${f("sPurpose")}
+Challenges: ${f("sChallenge")}
+Stakeholders: ${f("sStake")}
+Desired change: ${f("sWant")}
+Data already collected: ${f("sData")}
+
+Rules: 3 outcomes maximum. Each outcome must describe a change for people, not an activity. 3 or 4 actions per outcome. 2 or 3 indicators per outcome that this organisation could realistically measure with its size and data, preferring data it already has. Do not invent statistics, budgets or facts about the organisation. Plain English, no jargon.
+
+Return ONLY JSON:
+{"summary":"two sentences on strategic direction",
+ "outcomes":[{"outcome":"","why":"one sentence linking it to the challenges","actions":[""],"indicators":[{"indicator":"","source":"","frequency":""}]}],
+ "first_90_days":["5 concrete steps"],
+ "consultant_review":["3 or 4 points where expert judgement is needed"],
+ "assumptions":["assumptions you made"]}`;
+  try{
+    const d = await sample.json(prompt, { signal: sCtl.signal, modelTier: "default" });
+    renderStarter(d);
+    $("starterStatus").textContent = "First-draft outline for consultant review.";
+  }catch(e){ $("starterStatus").textContent = errorCopy(e && e.code); }
+  finally{ busy($("starterBtn"), $("starterStop"), false); }
+});
+$("starterStop").addEventListener("click", () => sCtl && sCtl.abort());
+
+/* ---------- start ---------- */
+(async () => {
+  try { sample = await (window.claude && window.claude.use ? window.claude.use("sample") : null); } catch(e){ sample = null; }
+  if (!sample){
+    ["tenderBtn","consultBtn","starterBtn"].forEach(id => $(id).disabled = true);
+    $("consultStatus").textContent = "Open this page in Claude to run the AI. The sample data and search still work.";
+    $("tenderStatus").textContent = "Open this page in Claude to run the AI.";
+  }
+})();
+</script>
+</body>
+</html>
