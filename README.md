@@ -39,7 +39,7 @@ Built by [Deeksha Gulati](https://deekshagulati.netlify.app). Uses only public d
 You need Python 3.10+ and an API key for Anthropic or Azure OpenAI.
 
 ```bash
-git clone https://github.com/<your-username>/strategy-ai-toolkit.git
+git clone https://github.com/deekshaagulatii-gif/Strategy.aitoolkit.git
 cd strategy-ai-toolkit
 pip install -r requirements.txt
 cp .env.example .env          # then add your API key to .env
